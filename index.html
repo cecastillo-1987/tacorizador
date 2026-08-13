@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TACORIZATOR // Skynet Honorarium Protocol</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            red: '#ff003c',
+                            darkred: '#80001c',
+                            black: '#0a0a0f',
+                            panel: '#12131a',
+                            border: '#331018',
+                            neon: '#ff2a55'
+                        }
+                    },
+                    fontFamily: {
+                        orbitron: ['Orbitron', 'sans-serif'],
+                        mono: ['"Share Tech Mono"', 'monospace'],
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Orbitron, Share Tech Mono, Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #050508;
+            background-image: 
+                radial-gradient(rgba(255, 0, 60, 0.12) 1px, transparent 0),
+                linear-gradient(to bottom, rgba(0,0,0,0.8), rgba(10,10,15,0.95));
+            background-size: 24px 24px, 100% 100%;
+        }
+
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        .font-mono-tech { font-family: 'Share Tech Mono', monospace; }
+
+        /* Terminator Scanline effect */
+        .scanlines {
+            position: relative;
+            overflow: hidden;
+        }
+        .scanlines::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(255, 0, 60, 0.05) 50%);
+            background-size: 100% 4px;
+            z-index: 20;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        /* Red HUD Glows */
+        .hud-border {
+            border: 1px solid rgba(255, 0, 60, 0.4);
+            box-shadow: 0 0 15px rgba(255, 0, 60, 0.15), inset 0 0 15px rgba(255, 0, 60, 0.05);
+        }
+        .hud-border-active {
+            border: 1px solid rgba(255, 0, 60, 0.9);
+            box-shadow: 0 0 25px rgba(255, 0, 60, 0.35), inset 0 0 20px rgba(255, 0, 60, 0.15);
+        }
+
+        /* Target HUD Corner Markers */
+        .hud-corner {
+            position: relative;
+        }
+        .hud-corner::before, .hud-corner::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-color: #ff003c;
+            border-style: solid;
+            pointer-events: none;
+        }
+        .hud-corner::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+        .hud-corner::after { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+
+        /* Glitch text animation */
+        @keyframes hud-pulse {
+            0%, 100% { opacity: 1; text-shadow: 0 0 10px rgba(255, 0, 60, 0.8); }
+            50% { opacity: 0.7; text-shadow: 0 0 2px rgba(255, 0, 60, 0.4); }
+        }
+        .text-glow-red {
+            animation: hud-pulse 2.5s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="dark bg-black text-slate-100 min-h-full transition-colors duration-200 flex flex-col scanlines">
+
+    <!-- Header -->
+    <header class="bg-black/90 border-b border-red-900/60 sticky top-0 z-30 shadow-lg shadow-red-950/40 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="w-11 h-11 rounded-lg bg-red-950 border border-red-600/80 text-red-500 flex items-center justify-center shadow-lg shadow-red-600/30 hud-corner">
+                    <i class="fa-solid fa-robot text-2xl animate-pulse"></i>
+                </div>
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <h1 class="text-2xl font-black font-orbitron tracking-wider text-red-600 text-glow-red uppercase">TACORIZATOR</h1>
+                        <span class="text-[10px] font-mono-tech px-2 py-0.5 rounded bg-red-950 text-red-400 border border-red-800 tracking-widest uppercase">T-800 MODEL</span>
+                    </div>
+                    <p class="text-xs font-mono-tech text-red-400/70 tracking-tight">SYSTEM // SKYNET HONORARIUM PROTOCOL 2026-2027</p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-3 w-full sm:w-auto justify-end font-mono-tech">
+                <button id="themeToggle" class="px-3 py-2 text-xs font-bold rounded-lg bg-red-950/80 hover:bg-red-900 text-red-300 hover:text-white transition border border-red-700/80 shadow-md">
+                    <i id="themeIcon" class="fa-solid fa-moon"></i>
+                </button>
+                <button id="resetTodayBtn" class="flex items-center space-x-2 px-3.5 py-2 text-xs font-bold rounded-lg bg-red-950/80 hover:bg-red-900 text-red-300 hover:text-white transition border border-red-700/80 shadow-md shadow-red-950/50">
+                    <i class="fa-solid fa-crosshairs text-red-500"></i>
+                    <span>REINICIAR A HOY REAL</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+        <!-- Controls & Date Selector Bar -->
+        <section class="bg-black/80 rounded-2xl p-6 hud-border hud-corner backdrop-blur">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="space-y-1">
+                    <label for="dateInput" class="block text-sm font-bold font-orbitron tracking-wider text-red-400 flex items-center gap-2">
+                        <i class="fa-solid fa-eye text-red-500 animate-pulse"></i>
+                        SIMULAR / EVALUAR FECHA TEMPORAL ("HOY"):
+                    </label>
+                    <p class="text-xs font-mono-tech text-slate-400">
+                        Ajusta el parámetro temporal de la línea de tiempo para calcular asignación y límites.
+                    </p>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <input type="date" id="dateInput" class="px-4 py-2.5 rounded-xl border border-red-800/80 bg-red-950/30 text-red-200 font-mono-tech text-base focus:ring-2 focus:ring-red-600 focus:border-red-500 focus:outline-none shadow-inner shadow-black">
+                </div>
+            </div>
+        </section>
+
+        <!-- Dynamic Official Statement Card (Mandatory Requirements Display) -->
+        <section class="relative overflow-hidden rounded-3xl bg-gradient-to-b from-black via-slate-950 to-red-950/60 text-white p-6 sm:p-10 hud-border-active hud-corner">
+            <!-- Tactical HUD decorative grid lines -->
+            <div class="absolute inset-0 bg-[radial-gradient(#ff003c_1px,transparent_1px)] [background-size:16px_16px] opacity-10 pointer-events-none"></div>
+
+            <div class="relative z-10 space-y-6">
+                <!-- Status Badge -->
+                <div class="flex flex-wrap items-center justify-between gap-3 font-mono-tech">
+                    <span class="inline-flex items-center px-3.5 py-1.5 rounded-md text-xs font-bold tracking-widest uppercase bg-red-950 text-red-400 border border-red-700/80" id="statusBadge">
+                        <span class="w-2.5 h-2.5 rounded-full bg-red-500 mr-2 animate-ping"></span>
+                        SISTEMA EVALUANDO
+                    </span>
+                    <button id="copySummaryBtn" class="text-xs bg-red-950/90 hover:bg-red-900 text-red-200 px-3.5 py-2 rounded-lg backdrop-blur border border-red-700/80 transition flex items-center space-x-2 font-mono-tech uppercase tracking-wider">
+                        <i class="fa-solid fa-terminal text-red-400"></i>
+                        <span>Copiar dictamen táctico</span>
+                    </button>
+                </div>
+
+                <!-- Dictamen Principal / Requisitos Solicitados -->
+                <div class="space-y-6 bg-black/80 p-6 sm:p-8 rounded-2xl border border-red-900/60 backdrop-blur-md shadow-2xl">
+                    
+                    <!-- Line 1: Hoy -->
+                    <div class="flex flex-col sm:flex-row sm:items-baseline gap-2">
+                        <span class="text-red-400/90 font-mono-tech text-lg sm:text-xl uppercase tracking-wider">Dado que hoy es:</span>
+                        <span id="displayToday" class="text-2xl sm:text-3xl font-black font-orbitron text-red-500 text-glow-red capitalize tracking-tight">Cargando fecha actual...</span>
+                    </div>
+
+                    <div class="h-px bg-red-950/80 w-full"></div>
+
+                    <!-- Line 2: Mes asignado -->
+                    <div class="flex flex-col space-y-1">
+                        <span class="text-slate-300 font-mono-tech text-sm sm:text-base font-normal">
+                            hay que hacer el honorario como si el prestador fuera a trabajar durante:
+                        </span>
+                        <span id="displayMes" class="text-3xl sm:text-4xl font-black font-orbitron text-white tracking-widest capitalize drop-shadow-[0_0_10px_rgba(255,255,255,0.4)]">Cargando mes...</span>
+                    </div>
+
+                    <div class="h-px bg-red-950/80 w-full"></div>
+
+                    <!-- Line 3: Fecha límite -->
+                    <div class="flex flex-col space-y-1">
+                        <span class="text-slate-300 font-mono-tech text-sm sm:text-base font-normal">
+                            y hay presentar la documentación hasta:
+                        </span>
+                        <div class="flex flex-wrap items-center gap-3">
+                            <span id="displayHasta" class="text-2xl sm:text-3xl font-extrabold font-orbitron text-red-400 tracking-wider">Cargando plazo...</span>
+                            <span id="deadlineCountdown" class="text-xs font-mono-tech px-3 py-1 rounded-md bg-red-950 text-red-300 border border-red-700"></span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Details & Alert message -->
+                <div id="infoDetailBox" class="rounded-xl p-4 bg-red-950/40 border border-red-800/60 text-red-200 text-xs sm:text-sm font-mono-tech flex items-start space-x-3">
+                    <i class="fa-solid fa-triangle-exclamation text-red-500 mt-0.5 text-base flex-shrink-0 animate-bounce"></i>
+                    <div id="infoDetailText">
+                        Cargando diagnóstico de parámetros temporales...
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Quick Stats Grid -->
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Card 1: Período "Desde" -->
+            <div class="bg-black/80 rounded-2xl p-5 border border-red-900/50 hud-corner shadow-lg flex items-center space-x-4">
+                <div class="w-12 h-12 rounded-xl bg-red-950/80 text-red-500 border border-red-800 flex items-center justify-center flex-shrink-0 text-xl font-orbitron">
+                    <i class="fa-solid fa-play"></i>
+                </div>
+                <div>
+                    <span class="text-xs font-mono-tech font-semibold uppercase text-red-400 tracking-widest">FECHA INICIO SOLICITUD</span>
+                    <h3 id="statDesde" class="text-lg font-bold font-mono-tech text-white">--</h3>
+                    <p class="text-[11px] text-slate-400">Apertura oficial del portal de carga</p>
+                </div>
+            </div>
+
+            <!-- Card 2: Período "Hasta" -->
+            <div class="bg-black/80 rounded-2xl p-5 border border-red-900/50 hud-corner shadow-lg flex items-center space-x-4">
+                <div class="w-12 h-12 rounded-xl bg-red-950/80 text-red-500 border border-red-800 flex items-center justify-center flex-shrink-0 text-xl font-orbitron">
+                    <i class="fa-solid fa-skull"></i>
+                </div>
+                <div>
+                    <span class="text-xs font-mono-tech font-semibold uppercase text-red-400 tracking-widest">FECHA LÍMITE RECEPCIÓN</span>
+                    <h3 id="statHasta" class="text-lg font-bold font-mono-tech text-red-400">--</h3>
+                    <p class="text-[11px] text-slate-400">Terminación de plazo para entrega firmada</p>
+                </div>
+            </div>
+
+            <!-- Card 3: Mes de Prestación -->
+            <div class="bg-black/80 rounded-2xl p-5 border border-red-900/50 hud-corner shadow-lg flex items-center space-x-4">
+                <div class="w-12 h-12 rounded-xl bg-red-950/80 text-red-500 border border-red-800 flex items-center justify-center flex-shrink-0 text-xl font-orbitron">
+                    <i class="fa-solid fa-microchip"></i>
+                </div>
+                <div>
+                    <span class="text-xs font-mono-tech font-semibold uppercase text-red-400 tracking-widest">MES ASIGNADO</span>
+                    <h3 id="statMes" class="text-lg font-bold font-mono-tech text-white">--</h3>
+                    <p class="text-[11px] text-slate-400">Ciclo de ejecución laboral asignado</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Full Table Section -->
+        <section class="bg-black/80 rounded-2xl shadow-xl border border-red-900/60 overflow-hidden hud-corner">
+            <div class="p-6 border-b border-red-900/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-red-950/20">
+                <div>
+                    <h2 class="text-lg font-bold font-orbitron tracking-wider text-red-500 flex items-center gap-2">
+                        <i class="fa-solid fa-list-check"></i>
+                        REGISTRO CENTRAL DE HONORARIOS TACORIZATOR 2026 - 2027
+                    </h2>
+                    <p class="text-xs font-mono-tech text-slate-400 mt-0.5">
+                        Matriz de períodos de prestación y fechas límite programadas
+                    </p>
+                </div>
+                <div class="w-full sm:w-64 font-mono-tech">
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-red-500/70 text-xs"></i>
+                        <input type="text" id="tableSearch" placeholder="Filtrar mes..." class="w-full pl-9 pr-3 py-1.5 text-sm rounded-lg border border-red-900 bg-black text-red-200 focus:outline-none focus:ring-2 focus:ring-red-600">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse font-mono-tech">
+                    <thead>
+                        <tr class="bg-red-950/40 border-b border-red-900/60 text-xs uppercase text-red-400 tracking-wider">
+                            <th class="py-3.5 px-6">Mes de Prestación</th>
+                            <th class="py-3.5 px-6">Fecha Desde (Apertura)</th>
+                            <th class="py-3.5 px-6">Fecha Hasta (Límite Entrega)</th>
+                            <th class="py-3.5 px-6 text-center">Estado Relativo</th>
+                            <th class="py-3.5 px-6 text-right">Acción Táctica</th>
+                        </tr>
+                    </thead>
+                    <tbody id="calendarTableBody" class="divide-y divide-red-950 text-sm">
+                        <!-- Dynamic rows injected via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Explanation & FAQs -->
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-6 font-mono-tech">
+            <div class="bg-black/80 rounded-2xl p-6 border border-red-900/50 shadow-sm space-y-3">
+                <h3 class="font-bold font-orbitron text-red-400 flex items-center gap-2">
+                    <i class="fa-solid fa-shield-halved text-red-500"></i>
+                    PROTOCOLO TACORIZATOR
+                </h3>
+                <ul class="text-xs text-slate-300 space-y-2 list-disc list-inside leading-relaxed">
+                    <li><strong class="text-red-400">Mes de Prestación:</strong> Mes del ciclo de trabajo en que se ejecutará el convenio de honorario.</li>
+                    <li><strong class="text-red-400">Fecha Desde:</strong> Momento exacto de apertura del sistema para ingreso de solicitud.</li>
+                    <li><strong class="text-red-400">Fecha Hasta:</strong> Límite fatal para presentar documentación firmada. Evita el bloqueo del trámite.</li>
+                </ul>
+            </div>
+
+            <div class="bg-black/80 rounded-2xl p-6 border border-red-900/50 shadow-sm space-y-3">
+                <h3 class="font-bold font-orbitron text-red-400 flex items-center gap-2">
+                    <i class="fa-solid fa-triangle-exclamation text-amber-500"></i>
+                    ADVERTENCIA SKYNET
+                </h3>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                    Si te encuentras fuera de la ventana táctica (entre la fecha límite y la siguiente apertura), la solicitud pasará automáticamente a la siguiente fecha asignada. <em>"No hay destino excepto el que nosotros hacemos... antes de que venza el plazo."</em>
+                </p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-black/95 border-t border-red-900/60 py-6 mt-12 text-center text-xs font-mono-tech text-red-500/60">
+        <div class="max-w-7xl mx-auto px-4">
+            <p>TACORIZATOR &copy; 2026-2027 // SKYNET DEFENSE SYSTEM. TODOS LOS DERECHOS RESERVADOS.</p>
+        </div>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 transform translate-y-20 opacity-0 transition-all duration-300 bg-red-950 text-red-100 border border-red-600 px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-3 z-50 pointer-events-none font-mono-tech">
+        <i class="fa-solid fa-check-double text-red-400"></i>
+        <span id="toastMsg" class="text-sm font-bold">Dictamen copiado al portapapeles</span>
+    </div>
+
+    <script>
+        // Calendar dataset provided by user
+        // Note: Dates in format DD-MM-YYYY
+        const rawCalendarData = [
+            { id: 1, mes: 'Marzo', desdeStr: '02-01-2026', hastaStr: '12-01-2026' },
+            { id: 2, mes: 'Abril', desdeStr: '02-03-2026', hastaStr: '13-03-2026' },
+            { id: 3, mes: 'Mayo', desdeStr: '01-04-2026', hastaStr: '13-04-2026' },
+            { id: 4, mes: 'Junio', desdeStr: '04-05-2026', hastaStr: '14-05-2026' },
+            { id: 5, mes: 'Julio', desdeStr: '01-06-2026', hastaStr: '12-06-2026' },
+            { id: 6, mes: 'Agosto', desdeStr: '01-07-2026', hastaStr: '13-07-2026' },
+            { id: 7, mes: 'Septiembre', desdeStr: '03-08-2026', hastaStr: '14-08-2026' },
+            { id: 8, mes: 'Octubre', desdeStr: '01-09-2026', hastaStr: '11-09-2026' },
+            { id: 9, mes: 'Noviembre', desdeStr: '01-10-2026', hastaStr: '13-10-2026' },
+            { id: 10, mes: 'Diciembre', desdeStr: '02-11-2026', hastaStr: '13-11-2026' },
+            { id: 11, mes: 'Enero 2027', desdeStr: '01-12-2026', hastaStr: '11-12-2026' }
+        ];
+
+        // Parse DD-MM-YYYY string to Date object
+        function parseDate(str) {
+            if (!str) return null;
+            const parts = str.split('-');
+            if (parts.length !== 3) return null;
+            const day = parseInt(parts[0], 10);
+            const month = parseInt(parts[1], 10) - 1;
+            const year = parseInt(parts[2], 10);
+            return new Date(year, month, day);
+        }
+
+        // Process calendar items with JS Date objects
+        const calendarData = rawCalendarData.map(item => {
+            const desde = parseDate(item.desdeStr);
+            const hasta = parseDate(item.hastaStr);
+            const hastaEnd = hasta ? new Date(hasta.getFullYear(), hasta.getMonth(), hasta.getDate(), 23, 59, 59) : null;
+            return {
+                ...item,
+                desdeObj: desde,
+                hastaObj: hasta,
+                hastaEndObj: hastaEnd
+            };
+        });
+
+        const monthNamesEs = [
+            'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+            'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+        ];
+
+        function formatDateFull(date) {
+            if (!date) return 'N/A';
+            const dayName = date.toLocaleDateString('es-ES', { weekday: 'long' });
+            const day = date.getDate();
+            const month = monthNamesEs[date.getMonth()];
+            const year = date.getFullYear();
+            return `${dayName} ${day} de ${month} de ${year}`;
+        }
+
+        function formatISODateInput(date) {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+        let selectedDate = new Date();
+
+        function evaluateDate(today) {
+            const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
+
+            // 1. Check if today is strictly inside a window [DESDE, HASTA]
+            for (let i = 0; i < calendarData.length; i++) {
+                const item = calendarData[i];
+                if (todayStart >= item.desdeObj && todayStart <= item.hastaEndObj) {
+                    return {
+                        status: 'ACTIVE',
+                        item: item,
+                        message: `El plazo para ${item.mes} está **ABIERTO** actualmente.`
+                    };
+                }
+            }
+
+            // 2. Check if today is BEFORE the first window
+            if (todayStart < calendarData[0].desdeObj) {
+                return {
+                    status: 'UPCOMING_FIRST',
+                    item: calendarData[0],
+                    message: `Aún no se abre el primer plazo (${calendarData[0].desdeStr}). El primer periodo corresponderá a ${calendarData[0].mes}.`
+                };
+            }
+
+            // 3. Check if today falls between windows
+            for (let i = 0; i < calendarData.length - 1; i++) {
+                const current = calendarData[i];
+                const next = calendarData[i + 1];
+
+                if (todayStart > current.hastaEndObj && todayStart < next.desdeObj) {
+                    return {
+                        status: 'WAITING_NEXT',
+                        item: next,
+                        previousItem: current,
+                        message: `El plazo para ${current.mes} cerró el ${current.hastaStr}. Próxima apertura para **${next.mes}** inicia el ${next.desdeStr}.`
+                    };
+                }
+            }
+
+            // 4. Check if today is AFTER the last window
+            const last = calendarData[calendarData.length - 1];
+            if (todayStart > last.hastaEndObj) {
+                return {
+                    status: 'AFTER_ALL',
+                    item: last,
+                    message: `Ha finalizado el calendario programado 2026-2027 (Último período: ${last.mes}).`
+                };
+            }
+
+            return {
+                status: 'DEFAULT',
+                item: calendarData[0],
+                message: ''
+            };
+        }
+
+        function updateUI() {
+            const dateInput = document.getElementById('dateInput');
+            if (dateInput && dateInput.value) {
+                const [y, m, d] = dateInput.value.split('-');
+                selectedDate = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+            } else {
+                selectedDate = new Date();
+            }
+
+            const result = evaluateDate(selectedDate);
+            const item = result.item;
+
+            const displayTodayEl = document.getElementById('displayToday');
+            if (displayTodayEl) displayTodayEl.textContent = formatDateFull(selectedDate);
+
+            const displayMesEl = document.getElementById('displayMes');
+            if (displayMesEl) displayMesEl.textContent = item.mes;
+
+            const displayHastaEl = document.getElementById('displayHasta');
+            if (displayHastaEl) displayHastaEl.textContent = item.hastaStr;
+
+            const statDesde = document.getElementById('statDesde');
+            if (statDesde) statDesde.textContent = item.desdeStr;
+
+            const statHasta = document.getElementById('statHasta');
+            if (statHasta) statHasta.textContent = item.hastaStr;
+
+            const statMes = document.getElementById('statMes');
+            if (statMes) statMes.textContent = item.mes;
+
+            const statusBadge = document.getElementById('statusBadge');
+            const infoDetailText = document.getElementById('infoDetailText');
+            const deadlineCountdown = document.getElementById('deadlineCountdown');
+
+            const diffTime = item.hastaObj - selectedDate;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (result.status === 'ACTIVE') {
+                if (statusBadge) {
+                    statusBadge.className = "inline-flex items-center px-3.5 py-1.5 rounded-md text-xs font-bold tracking-widest uppercase bg-red-950 text-red-400 border border-red-600 shadow-[0_0_10px_rgba(255,0,60,0.4)]";
+                    statusBadge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-red-500 mr-2 animate-ping"></span> VENTANA ACTIVA`;
+                }
+
+                if (deadlineCountdown) {
+                    if (diffDays >= 0) {
+                        deadlineCountdown.textContent = diffDays === 0 ? '¡HOY ES EL DÍA LÍMITE!' : `QUEDAN ${diffDays} DÍA(S)`;
+                        deadlineCountdown.className = "text-xs px-3 py-1 rounded-md bg-red-950 text-red-300 border border-red-600 font-bold animate-pulse";
+                    } else {
+                        deadlineCountdown.textContent = 'FECHA LÍMITE';
+                    }
+                }
+
+                if (infoDetailText) {
+                    infoDetailText.innerHTML = `<strong>ALERTA TÁCTICA:</strong> La recepción de documentos está ACTIVA. Firma y presenta anexos antes del <strong>${item.hastaStr}</strong>.`;
+                }
+            } else if (result.status === 'WAITING_NEXT' || result.status === 'UPCOMING_FIRST') {
+                if (statusBadge) {
+                    statusBadge.className = "inline-flex items-center px-3.5 py-1.5 rounded-md text-xs font-bold tracking-widest uppercase bg-amber-950 text-amber-400 border border-amber-600";
+                    statusBadge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-amber-500 mr-2"></span> ESPERA DE APERTURA`;
+                }
+
+                if (deadlineCountdown) {
+                    deadlineCountdown.textContent = `APERTURA: ${item.desdeStr}`;
+                    deadlineCountdown.className = "text-xs px-3 py-1 rounded-md bg-amber-950 text-amber-300 border border-amber-600";
+                }
+
+                if (infoDetailText) {
+                    infoDetailText.innerHTML = result.message.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                }
+            } else {
+                if (statusBadge) {
+                    statusBadge.className = "inline-flex items-center px-3.5 py-1.5 rounded-md text-xs font-bold tracking-widest uppercase bg-slate-900 text-slate-400 border border-slate-700";
+                    statusBadge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-slate-500 mr-2"></span> FUERA DE RANGO`;
+                }
+
+                if (deadlineCountdown) {
+                    deadlineCountdown.textContent = 'FINALIZADO';
+                    deadlineCountdown.className = "text-xs px-3 py-1 rounded-md bg-slate-900 text-slate-500 border border-slate-700";
+                }
+
+                if (infoDetailText) {
+                    infoDetailText.innerHTML = result.message;
+                }
+            }
+
+            renderTable(item);
+        }
+
+        function renderTable(activeItem) {
+            const tableBody = document.getElementById('calendarTableBody');
+            if (!tableBody) return;
+
+            const searchInput = (document.getElementById('tableSearch')?.value || '').toLowerCase().trim();
+            tableBody.innerHTML = '';
+
+            const filtered = calendarData.filter(row => 
+                row.mes.toLowerCase().includes(searchInput) ||
+                row.desdeStr.includes(searchInput) ||
+                row.hastaStr.includes(searchInput)
+            );
+
+            if (filtered.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="py-8 text-center text-red-500/60 font-mono-tech">
+                            SISTEMA: NO SE ENCONTRARON REGISTROS CON "${searchInput}"
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            filtered.forEach(row => {
+                const isSelected = activeItem && activeItem.id === row.id;
+                const tr = document.createElement('tr');
+                
+                tr.className = isSelected 
+                    ? "bg-red-950/70 font-bold border-l-4 border-l-red-500 transition shadow-[0_0_15px_rgba(255,0,60,0.15)]" 
+                    : "hover:bg-red-950/30 transition";
+
+                let relativeTag = `<span class="text-xs px-2.5 py-0.5 rounded bg-slate-900 text-slate-400 border border-slate-800">PROGRAMADO</span>`;
+                if (isSelected) {
+                    relativeTag = `<span class="text-xs px-2.5 py-0.5 rounded bg-red-950 text-red-400 border border-red-600 font-black animate-pulse">OBJETIVO VIGENTE</span>`;
+                }
+
+                tr.innerHTML = `
+                    <td class="py-4 px-6 text-white flex items-center gap-2">
+                        ${isSelected ? '<i class="fa-solid fa-crosshairs text-red-500 text-xs animate-spin"></i>' : ''}
+                        <span>${row.mes}</span>
+                    </td>
+                    <td class="py-4 px-6 text-slate-300">${row.desdeStr}</td>
+                    <td class="py-4 px-6 text-red-400 font-bold">${row.hastaStr}</td>
+                    <td class="py-4 px-6 text-center">${relativeTag}</td>
+                    <td class="py-4 px-6 text-right">
+                        <button onclick="selectMonthRow(${row.id})" class="text-xs px-3 py-1.5 rounded bg-red-950 border border-red-800 hover:bg-red-700 hover:text-white text-red-300 transition">
+                            SIMULAR FECHA
+                        </button>
+                    </td>
+                `;
+
+                tableBody.appendChild(tr);
+            });
+        }
+
+        function selectMonthRow(id) {
+            const found = calendarData.find(x => x.id === id);
+            if (found && found.desdeObj) {
+                const dateInput = document.getElementById('dateInput');
+                if (dateInput) dateInput.value = formatISODateInput(found.desdeObj);
+                updateUI();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            if (!toast || !toastMsg) return;
+            toastMsg.textContent = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        function initApp() {
+            const themeToggle = document.getElementById('themeToggle');
+            const themeIcon = document.getElementById('themeIcon');
+
+            if (themeToggle && themeIcon) {
+                themeToggle.addEventListener('click', () => {
+                    if (document.documentElement.classList.contains('dark')) {
+                        document.documentElement.classList.remove('dark');
+                        localStorage.theme = 'light';
+                        themeIcon.className = 'fa-solid fa-moon';
+                    } else {
+                        document.documentElement.classList.add('dark');
+                        localStorage.theme = 'dark';
+                        themeIcon.className = 'fa-solid fa-sun';
+                    }
+                });
+            }
+
+            const copySummaryBtn = document.getElementById('copySummaryBtn');
+            if (copySummaryBtn) {
+                copySummaryBtn.addEventListener('click', () => {
+                    const todayStr = document.getElementById('displayToday')?.textContent || '';
+                    const mesStr = document.getElementById('displayMes')?.textContent || '';
+                    const hastaStr = document.getElementById('displayHasta')?.textContent || '';
+
+                    const statementText = `Dado que hoy es: ${todayStr}, hay que hacer el honorario como si el prestador fuera a trabajar durante: ${mesStr}, y hay presentar la documentación hasta: ${hastaStr}.`;
+
+                    if (navigator.clipboard && window.isSecureContext) {
+                        navigator.clipboard.writeText(statementText).then(() => showToast('¡Dictamen copiado al portapapeles!'));
+                    } else {
+                        const textArea = document.createElement('textarea');
+                        textArea.value = statementText;
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        try {
+                            document.execCommand('copy');
+                            showToast('¡Dictamen copiado al portapapeles!');
+                        } catch (err) {
+                            showToast('No se pudo copiar automáticamente');
+                        }
+                        document.body.removeChild(textArea);
+                    }
+                });
+            }
+
+            const dateInput = document.getElementById('dateInput');
+            if (dateInput) {
+                dateInput.addEventListener('change', updateUI);
+                if (!dateInput.value) {
+                    dateInput.value = formatISODateInput(new Date());
+                }
+            }
+
+            const tableSearch = document.getElementById('tableSearch');
+            if (tableSearch) {
+                tableSearch.addEventListener('input', () => {
+                    const result = evaluateDate(selectedDate);
+                    renderTable(result.item);
+                });
+            }
+
+            const resetTodayBtn = document.getElementById('resetTodayBtn');
+            if (resetTodayBtn) {
+                resetTodayBtn.addEventListener('click', () => {
+                    const realToday = new Date();
+                    if (dateInput) dateInput.value = formatISODateInput(realToday);
+                    updateUI();
+                    showToast('Se restableció a la fecha de hoy');
+                });
+            }
+
+            updateUI();
+        }
+
+        // Initialize safely both on DOM load and immediately if already ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initApp);
+        } else {
+            initApp();
+        }
+    </script>
+</body>
+</html>
