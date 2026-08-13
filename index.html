@@ -32,6 +32,10 @@
     </script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tone.js CDN for Web Audio Synthesis -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <!-- ToneJS Midi Parser CDN -->
+    <script src="https://unpkg.com/@tonejs/midi"></script>
     <!-- Google Fonts: Orbitron, Share Tech Mono, Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -122,6 +126,12 @@
             </div>
 
             <div class="flex items-center space-x-3 w-full sm:w-auto justify-end font-mono-tech">
+                <!-- Audio BGM Toggle Button -->
+                <button id="audioToggleBtn" class="flex items-center space-x-2 px-3.5 py-2 text-xs font-bold rounded-lg bg-red-950/80 hover:bg-red-900 text-red-400 hover:text-white transition border border-red-700/80 shadow-md">
+                    <i id="audioIcon" class="fa-solid fa-volume-xmark text-red-500"></i>
+                    <span id="audioStatusText">MIDI SKYNET: OFF</span>
+                </button>
+
                 <button id="themeToggle" class="px-3 py-2 text-xs font-bold rounded-lg bg-red-950/80 hover:bg-red-900 text-red-300 hover:text-white transition border border-red-700/80 shadow-md">
                     <i id="themeIcon" class="fa-solid fa-moon"></i>
                 </button>
@@ -624,6 +634,82 @@
         }
 
         function initApp() {
+            let isAudioPlaying = false;
+            let synths = [];
+
+            const audioToggleBtn = document.getElementById('audioToggleBtn');
+            const audioIcon = document.getElementById('audioIcon');
+            const audioStatusText = document.getElementById('audioStatusText');
+
+            // Load and schedule external MIDI file (theme.mid)
+            async function loadAndPlayMidi() {
+                try {
+                    // Fetch and parse the MIDI file from root folder
+                    const midi = await Midi.fromUrl('theme.mid');
+
+                    // Reset any previous audio scheduling
+                    Tone.Transport.cancel();
+                    synths.forEach(s => s.dispose());
+                    synths = [];
+
+                    const duration = midi.duration;
+
+                    // Create polyphonic synth for each active track in the MIDI
+                    midi.tracks.forEach(track => {
+                        if (track.notes.length === 0) return;
+
+                        const synth = new Tone.PolySynth(Tone.Synth, {
+                            oscillator: { type: 'triangle' },
+                            envelope: { attack: 0.02, decay: 0.1, sustain: 0.4, release: 0.8 }
+                        }).toDestination();
+                        synths.push(synth);
+
+                        // Schedule each note on Tone.Transport
+                        track.notes.forEach(note => {
+                            Tone.Transport.schedule((time) => {
+                                synth.triggerAttackRelease(note.name, note.duration, time, note.velocity);
+                            }, note.time);
+                        });
+                    });
+
+                    // Set up loop
+                    Tone.Transport.loop = true;
+                    Tone.Transport.loopEnd = duration > 0 ? duration : 10;
+                    return true;
+                } catch (err) {
+                    console.warn("No se pudo cargar theme.mid:", err);
+                    showToast("No se encontró 'theme.mid' en el repositorio");
+                    return false;
+                }
+            }
+
+            if (audioToggleBtn) {
+                audioToggleBtn.addEventListener('click', async () => {
+                    await Tone.start();
+
+                    if (!isAudioPlaying) {
+                        showToast('Cargando pista MIDI...');
+                        const success = await loadAndPlayMidi();
+                        if (success) {
+                            Tone.Transport.start();
+                            isAudioPlaying = true;
+                            audioIcon.className = 'fa-solid fa-volume-high text-red-500 animate-pulse';
+                            audioStatusText.textContent = 'MIDI SKYNET: ON';
+                            audioToggleBtn.classList.add('border-red-500', 'bg-red-900/90');
+                            showToast('Reproduciendo theme.mid');
+                        }
+                    } else {
+                        Tone.Transport.stop();
+                        Tone.Transport.cancel();
+                        isAudioPlaying = false;
+                        audioIcon.className = 'fa-solid fa-volume-xmark text-red-500';
+                        audioStatusText.textContent = 'MIDI SKYNET: OFF';
+                        audioToggleBtn.classList.remove('border-red-500', 'bg-red-900/90');
+                        showToast('Audio pausado');
+                    }
+                });
+            }
+
             const themeToggle = document.getElementById('themeToggle');
             const themeIcon = document.getElementById('themeIcon');
 
